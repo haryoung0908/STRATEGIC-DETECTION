@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>DETECTION : STRATEGIC BLIND (Checklist Update)</title>
+<title>DETECTION : STRATEGIC BLIND (Final Complete)</title>
 <style>
     :root { 
         --bg-color: #0f172a; --card-bg: #1e293b; --accent: #38bdf8; 
@@ -65,7 +65,6 @@
     .prison { background: linear-gradient(145deg, #a855f7, #7e22ce); color: white; } 
     .start-node { background: #f43f5e; color: white; }                
 
-    /* 수첩 스타일 */
     .clue-section { text-align: left; margin-bottom: 15px; width: 100%; }
     .clue-section-title { font-size: 12px; font-weight: bold; color: var(--accent); margin-bottom: 8px; padding-left: 5px; border-left: 3px solid var(--accent); }
     .clue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -76,17 +75,12 @@
     .clue-card.tool { border-left-color: var(--warning); }
     .no-clue { font-size: 11px; opacity: 0.4; padding: 10px; grid-column: 1 / 3; text-align: center; }
 
-    /* 체크리스트 아이템 스타일 */
     .check-item { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; cursor: pointer; font-size: 11px; border: 1px solid rgba(255,255,255,0.1); text-align: center; transition: 0.2s; }
     .check-item.checked { text-decoration: line-through; opacity: 0.3; background: #000; border-color: transparent; }
-    .check-item:hover { background: rgba(255,255,255,0.1); }
-
-    .clue-back { background: #1e293b; border-left: 5px solid #64748b !important; justify-content: center; }
-    .clue-back::after { content: "?"; font-size: 18px; opacity: 0.5; }
 
     #diceContainer { height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     #bigDice { width: 60px; height: 60px; background: white; color: #0f172a; border-radius: 12px; font-size: 35px; font-weight: 900; display: flex; justify-content: center; align-items: center; }
-    #diceGuide { font-size: 10px; color: var(--accent); margin-top: 5px; height: 12px; font-weight: bold; }
+    #diceGuide { font-size: 11px; color: var(--accent); margin-top: 5px; height: 14px; font-weight: bold; }
     .rolling { animation: roll 0.1s infinite; }
     @keyframes roll { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
     .clickable-dice { cursor: pointer; border: 4px solid var(--accent); animation: pulse 1s infinite; }
@@ -97,9 +91,6 @@
 
     #popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(10px); }
     #popupContent { background: var(--card-bg); padding: 25px; border-radius: 24px; width: 440px; border: 1px solid rgba(255,255,255,0.1); max-height: 85vh; overflow-y: auto; }
-
-    @keyframes winnerScale { 0% { transform: scale(0.8); opacity:0; } 100% { transform: scale(1); opacity:1; } }
-    .winner-box { animation: winnerScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 </style>
 </head>
 <body>
@@ -114,10 +105,10 @@
     <h1>🕵️ STRATEGIC DETECTION</h1>
     <div class="game-guide">
         <span class="guide-title">🔍 사건 조사 가이드</span>
-        학교에서 발생한 미제 사건의 <b>[인물, 장소, 도구]</b>를 찾아야 합니다.<br>
-        1. 주사위를 굴려 보드판을 이동하세요.<br>
-        2. <b>단서</b>를 모으고 수첩의 <b>체크리스트</b>를 활용해 소거하세요.<br>
-        3. 정답을 확신하면 <b>추리</b> 칸에서 사건을 종결하세요!
+        현장의 <b>[인물, 장소, 도구]</b>를 파악하세요.<br>
+        1. <b>주사위</b>를 굴려 이동하고 단서를 수집하세요.<br>
+        2. 수첩의 <b>체크리스트</b>를 활용해 용의선상을 좁히세요.<br>
+        3. 정답을 확신하면 <b>추리</b> 칸에서 보고서를 제출하세요!
     </div>
     <div id="step1">
         <button onclick="askNames(2)">2인 플레이</button>
@@ -125,7 +116,6 @@
         <button onclick="askNames(4)">4인 플레이</button>
     </div>
     <div id="step2" style="display:none;">
-        <h2 style="margin-bottom:20px;">수사관 등록</h2>
         <div id="nameInputs"></div>
         <button onclick="startGame()" style="background:var(--success); color:#0f172a; width:224px; margin-top:10px;">수사 시작</button>
     </div>
@@ -155,12 +145,7 @@ const suspects = ["학생", "선생님", "친구", "선배"], places = ["교실"
 const colors = ["#f43f5e", "#3b82f6", "#10b981", "#f59e0b"], icons = ["🕵️", "🕵️‍♀️", "🔍", "📋"];
 let answer = {}, currentGuess = { s: "", p: "", t: "" };
 
-const pathGrid = [
-    [6,0],[5,0],[4,0],[3,0],[2,0],[1,0],
-    [0,0],[0,1],[0,2],[0,3],[0,4],[0,5],
-    [0,6],[1,6],[2,6],[3,6],[4,6],[5,6],
-    [6,6],[6,5],[6,4],[6,3],[6,2],[6,1]
-];
+const pathGrid = [[6,0],[5,0],[4,0],[3,0],[2,0],[1,0],[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[6,6],[6,5],[6,4],[6,3],[6,2],[6,1]];
 
 function askNames(n) {
     document.getElementById("step1").style.display = "none";
@@ -176,8 +161,7 @@ function startGame() {
         players.push({ 
             id: i-1, name: document.getElementById(`pname${i}`).value, 
             clues: [], position: 0, color: colors[i-1], icon: icons[i-1],
-            isTrapped: false,
-            checks: {} // 각 플레이어별 체크리스트 상태 저장
+            isTrapped: false, checks: {}
         });
     }
     answer = { suspect: suspects[Math.floor(Math.random()*4)], place: places[Math.floor(Math.random()*4)], tool: tools[Math.floor(Math.random()*4)] };
@@ -189,11 +173,9 @@ function startGame() {
 
 function initBoard() {
     const b = document.getElementById("board");
-    let tiles = ["guess","guess","guess","steal","steal","prison","prison","fake","fake","fake",
-                 "normal","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal"];
+    let tiles = ["guess","guess","guess","steal","steal","prison","prison","fake","fake","fake","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal","normal"];
     tiles.sort(() => Math.random() - 0.5);
     tiles.unshift("start-node"); 
-    
     pathGrid.forEach((pos, i) => {
         const cell = document.createElement("div");
         cell.className = `cell ${tiles[i]}`; cell.id = `cell${i}`;
@@ -208,7 +190,6 @@ function draw() {
     document.querySelectorAll(".playerToken").forEach(t => t.remove());
     players.forEach((p, i) => {
         const cell = document.getElementById(`cell${p.position}`);
-        if(!cell) return;
         const token = document.createElement("div");
         token.className = "playerToken" + (i === currentPlayer ? " activePlayer" : "");
         token.style.backgroundColor = p.color; token.innerText = p.icon;
@@ -222,7 +203,7 @@ function updateTurn() {
     const p = players[currentPlayer];
     if(p.isTrapped) {
         p.isTrapped = false; 
-        showEventPopup(`<h2>🔓 석방</h2><p>${p.name} 수사관이 조사를 마치고 복귀합니다. (1턴 휴식 종료)</p>`);
+        showEventPopup(`<h2>🔓 석방</h2><p>${p.name} 수사관이 복귀합니다.</p>`);
         return;
     }
     document.getElementById("turnText").innerHTML = `<span style="color:${p.color}">${p.name}</span> 차례`;
@@ -239,8 +220,6 @@ function startRolling() {
     const dice = document.getElementById("bigDice");
     const guide = document.getElementById("diceGuide");
     dice.classList.add("rolling");
-    dice.onclick = null;
-    
     setTimeout(() => {
         dice.classList.remove("rolling");
         lastDiceValue = Math.floor(Math.random()*6)+1;
@@ -259,40 +238,24 @@ function movePlayer() {
     let moveInt = setInterval(() => {
         players[currentPlayer].position = (players[currentPlayer].position + 1) % 24;
         draw();
-        if(++step >= lastDiceValue) { 
-            clearInterval(moveInt); 
-            document.getElementById("diceGuide").innerText = "";
-            setTimeout(handleEvent, 400); 
-        }
+        if(++step >= lastDiceValue) { clearInterval(moveInt); document.getElementById("diceGuide").innerText = ""; setTimeout(handleEvent, 400); }
     }, 200);
 }
 
 function handleEvent() {
     const pos = players[currentPlayer].position;
     const type = document.getElementById(`cell${pos}`).dataset.type;
-    const typeNames = { normal: "단서 발견", fake: "가짜 정보", steal: "정보 탈취", guess: "최종 추리", prison: "취조실 감금", "start-node": "시작 지점 (지목 조사)" };
-    
-    let content = `<h2>📍 ${typeNames[type]}</h2>`;
-
+    const typeNames = { normal: "단서 발견", fake: "가짜 정보", steal: "정보 탈취", guess: "최종 추리", prison: "취조실 감금", "start-node": "시작 지점" };
     if(type === "normal") {
         let cat = ["suspect","place","tool"][Math.floor(Math.random()*3)];
         let target = (cat === "suspect") ? suspects.filter(x=>x!==answer.suspect)[Math.floor(Math.random()*3)] : 
                      (cat === "place") ? places.filter(x=>x!==answer.place)[Math.floor(Math.random()*3)] : 
                      tools.filter(x=>x!==answer.tool)[Math.floor(Math.random()*3)];
-        
         players[currentPlayer].clues.push({ type: cat, val: target });
-        content += `<div class="clue-card ${cat}" style="width:auto; margin:10px auto;"><b>${target}</b> 아님</div>`;
-        showEventPopup(content);
+        showEventPopup(`<h2>📍 ${typeNames[type]}</h2><div class="clue-card ${cat}" style="width:auto; margin:10px auto;"><b>${target}</b> 아님</div>`);
     } 
-    else if(type === "fake") {
-        content += `<p>수상한 흔적만 가득하고 단서는 찾지 못했습니다.</p>`;
-        showEventPopup(content);
-    }
-    else if(type === "prison") {
-        players[currentPlayer].isTrapped = true;
-        content += `<p>참고인 조사를 위해 취조실에 소환되었습니다.<br><b>다음 1턴 동안 이동할 수 없습니다.</b></p>`;
-        showEventPopup(content);
-    }
+    else if(type === "fake") showEventPopup(`<h2>📍 ${typeNames[type]}</h2><p>수상한 흔적만 있고 수득한 정보는 없습니다.</p>`);
+    else if(type === "prison") { players[currentPlayer].isTrapped = true; showEventPopup(`<h2>📍 ${typeNames[type]}</h2><p>다음 1턴을 쉽니다.</p>`); }
     else if(type === "steal") openBlindAction(false);
     else if(type === "guess") openGuess();
     else if(type === "start-node") openBlindAction(true);
@@ -300,13 +263,8 @@ function handleEvent() {
 
 function showEventPopup(html) {
     const p = document.getElementById("popup");
-    const c = document.getElementById("popupContent");
     p.style.display = "flex";
-    c.innerHTML = html + `
-        <div style="margin-top:20px;">
-            <button onclick="viewClues(true)" style="width:100%; background:#475569;">📂 수첩 확인하기</button>
-            <button onclick="endTurn()" style="width:100%; background:var(--success); color:#0f172a;">수사 종료</button>
-        </div>`;
+    document.getElementById("popupContent").innerHTML = html + `<div style="margin-top:20px;"><button onclick="viewClues(true)" style="width:100%; background:#475569;">📂 수첩 확인</button><button onclick="endTurn()" style="width:100%; background:var(--success); color:#0f172a;">수사 종료</button></div>`;
 }
 
 function endTurn() {
@@ -314,83 +272,42 @@ function endTurn() {
     if(!gameOver) { currentPlayer = (currentPlayer + 1) % players.length; updateTurn(); }
 }
 
-// 체크리스트 상태 변경 함수
 function toggleCheck(val) {
     const p = players[currentPlayer];
     p.checks[val] = !p.checks[val];
-    const el = document.getElementById(`check-${val}`);
-    if(el) el.classList.toggle('checked');
+    document.getElementById(`check-${val}`).classList.toggle('checked');
 }
 
 function renderChecklist(title, list) {
     const p = players[currentPlayer];
-    let html = `<div class="clue-section">
-                    <div class="clue-section-title">${title}</div>
-                    <div class="clue-grid">`;
-    list.forEach(item => {
-        const isChecked = p.checks[item] ? 'checked' : '';
-        html += `<div id="check-${item}" class="check-item ${isChecked}" onclick="toggleCheck('${item}')">${item}</div>`;
-    });
-    html += `</div></div>`;
-    return html;
+    let html = `<div class="clue-section"><div class="clue-section-title">${title}</div><div class="clue-grid">`;
+    list.forEach(item => html += `<div id="check-${item}" class="check-item ${p.checks[item]?'checked':''}" onclick="toggleCheck('${item}')">${item}</div>`);
+    return html + `</div></div>`;
 }
 
 function renderClueCategory(title, type, clues) {
     const filtered = clues.filter(c => c.type === type);
-    let html = `<div class="clue-section">
-                    <div class="clue-section-title">${title}</div>
-                    <div class="clue-grid">`;
-    if(filtered.length === 0) {
-        html += `<div class="no-clue">발견된 단서 없음</div>`;
-    } else {
-        filtered.forEach(c => {
-            html += `<div class="clue-card ${type}"><b>${c.val}</b>&nbsp;아님</div>`;
-        });
-    }
-    html += `</div></div>`;
-    return html;
+    let html = `<div class="clue-section"><div class="clue-section-title">${title}</div><div class="clue-grid">`;
+    if(filtered.length === 0) html += `<div class="no-clue">정보 없음</div>`;
+    else filtered.forEach(c => html += `<div class="clue-card ${type}"><b>${c.val}</b> 아님</div>`);
+    return html + `</div></div>`;
 }
 
 function viewClues(isFromEvent = false, isFromGuess = false) {
     const p = players[currentPlayer];
-    let html = `<h3>📂 ${p.name}의 수사 수첩</h3>`;
-    
-    html += `<h4 style="color:var(--success); font-size:12px; margin-bottom:10px;">✅ 발견한 단서</h4>`;
-    html += renderClueCategory("👤 인물", "suspect", p.clues);
-    html += renderClueCategory("📍 장소", "place", p.clues);
-    html += renderClueCategory("🔧 도구", "tool", p.clues);
-    
-    html += `<hr style="opacity:0.1; margin:20px 0;">`;
-    
-    html += `<h4 style="color:var(--accent); font-size:12px; margin-bottom:10px;">🔍 수사 체크리스트 (소거용)</h4>`;
-    html += renderChecklist("👥 인물 목록", suspects);
-    html += renderChecklist("📍 장소 목록", places);
-    html += renderChecklist("🔧 도구 목록", tools);
-
-    html += `<div style="margin-top:20px;">`;
-    if(isFromGuess) {
-        html += `<button onclick="openGuess()" style="width:100%; background:var(--warning); color:#0f172a;">추리로 돌아가기</button>`;
-    } else if(isFromEvent) {
-        html += `<button onclick="endTurn()" style="width:100%; background:var(--success); color:#0f172a;">확인 완료</button>`;
-    } else {
-        html += `<button onclick="document.getElementById('popup').style.display='none'" style="width:100%">닫기</button>`;
-    }
-    html += `</div>`;
-    
+    let html = `<h3>📂 ${p.name}의 수첩</h3><h4 style="color:var(--success); font-size:12px;">✅ 획득 단서</h4>`;
+    html += renderClueCategory("👤 인물", "suspect", p.clues) + renderClueCategory("📍 장소", "place", p.clues) + renderClueCategory("🔧 도구", "tool", p.clues);
+    html += `<hr style="opacity:0.1; margin:15px 0;"><h4 style="color:var(--accent); font-size:12px;">🔍 수사 소거표</h4>`;
+    html += renderChecklist("👥 인물", suspects) + renderChecklist("📍 장소", places) + renderChecklist("🔧 도구", tools);
+    html += `<div style="margin-top:20px;">` + (isFromGuess ? `<button onclick="openGuess()" style="width:100%; background:var(--warning); color:#0f172a;">추리로 복귀</button>` : isFromEvent ? `<button onclick="endTurn()" style="width:100%; background:var(--success); color:#0f172a;">확인 완료</button>` : `<button onclick="document.getElementById('popup').style.display='none'" style="width:100%">닫기</button>`) + `</div>`;
     document.getElementById("popupContent").innerHTML = html;
     document.getElementById("popup").style.display = "flex";
 }
 
-// ... (이하 openBlindAction, showVictimCluesBlind, executeBlindAction, openGuess, selectGuess, submitGuess 함수는 기존과 동일) ...
-
 function openBlindAction(isViewOnly) {
     let others = players.filter(p => p.id !== currentPlayer && p.clues.length > 0);
-    const title = isViewOnly ? "🕵️ 지목 조사" : "🔓 정보 탈취";
-    if(others.length === 0) {
-        showEventPopup(`<h2>${title}</h2><p>단서를 가진 수사관이 없습니다.</p>`);
-        return;
-    }
-    let html = `<h2>${title}</h2><p>대상 수사관을 선택하세요.</p>`;
+    if(others.length === 0) { showEventPopup(`<h2>알림</h2><p>단서를 가진 수사관이 없습니다.</p>`); return; }
+    let html = `<h2>${isViewOnly?'🕵️ 지목 조사':'🔓 정보 탈취'}</h2><p>대상 수사관 선택</p>`;
     others.forEach(o => html += `<button onclick="showVictimCluesBlind(${o.id}, ${isViewOnly})" style="width:100%">${o.name}</button>`);
     document.getElementById("popupContent").innerHTML = html;
     document.getElementById("popup").style.display = "flex";
@@ -398,39 +315,23 @@ function openBlindAction(isViewOnly) {
 
 function showVictimCluesBlind(tid, isViewOnly) {
     const victim = players[tid];
-    let html = `<h2>🔎 ${victim.name}의 수첩</h2><p>비공개 단서 하나를 선택하세요.</p><div class="clue-grid">`;
-    victim.clues.forEach((c, idx) => {
-        html += `<div class="clue-card clue-back" style="cursor:pointer" onclick="executeBlindAction(${tid}, ${idx}, ${isViewOnly})"></div>`;
-    });
-    html += `</div>`;
-    document.getElementById("popupContent").innerHTML = html;
+    let html = `<h2>🔎 ${victim.name}의 수첩</h2><p>단서 하나를 고르세요.</p><div class="clue-grid">`;
+    victim.clues.forEach((c, idx) => html += `<div class="clue-card clue-back" style="cursor:pointer" onclick="executeBlindAction(${tid}, ${idx}, ${isViewOnly})"></div>`);
+    document.getElementById("popupContent").innerHTML = html + `</div>`;
 }
 
 function executeBlindAction(tid, cIdx, isViewOnly) {
     const c = isViewOnly ? players[tid].clues[cIdx] : players[tid].clues.splice(cIdx, 1)[0];
     if(!isViewOnly) players[currentPlayer].clues.push(c);
-    const title = isViewOnly ? "🔍 조사 결과" : "🎉 탈취 성공!";
-    showEventPopup(`<h2>${title}</h2><p>정보를 확인했습니다:</p><div class="clue-card ${c.type}" style="width:auto; margin:10px auto;"><b>${c.val}</b> 아님</div>`);
+    showEventPopup(`<h2>${isViewOnly?'🔍 조사 결과':'🎉 탈취 성공'}</h2><div class="clue-card ${c.type}" style="width:auto; margin:10px auto;"><b>${c.val}</b> 아님</div>`);
 }
 
 function openGuess() {
-    let html = `<h2>🕵️ 최종 추리</h2><p>사건의 진상을 지목하세요.</p>`;
-    const make = (arr, t, current) => `<div style="margin:10px 0;">` + arr.map(v => {
-        const isSelected = current === v;
-        const style = isSelected ? `background:var(--warning); color:#0f172a;` : `background:#1e293b; color:white; opacity:0.8;`;
-        return `<button onclick="selectGuess('${t}','${v}', this)" style="padding:10px 15px; margin:2px; ${style} border-radius:8px;">${v}</button>`;
-    }).join("") + `</div>`;
-    
-    html += `<small>[인물]</small>` + make(suspects, 's', currentGuess.s);
-    html += `<small>[장소]</small>` + make(places, 'p', currentGuess.p);
-    html += `<small>[도구]</small>` + make(tools, 't', currentGuess.t);
-    
-    html += `
-        <div style="margin-top:15px;">
-            <button onclick="viewClues(false, true)" style="width:100%; background:#475569;">📂 내 수첩 확인하기</button>
-            <button onclick="submitGuess()" style="width:100%; background:var(--success); color:#0f172a;">사건 종결 보고</button>
-            <button onclick="endTurn()" style="width:100%; background:transparent; border:1px solid rgba(255,255,255,0.3);">추리 포기</button>
-        </div>`;
+    currentGuess = { s: "", p: "", t: "" }; // [필수 반영] 추리 기록 초기화
+    let html = `<h2>🕵️ 최종 추리</h2><p>사건 보고서를 작성하세요.</p>`;
+    const make = (arr, t) => `<div style="margin:10px 0;">` + arr.map(v => `<button onclick="selectGuess('${t}','${v}', this)" style="padding:10px 15px; margin:2px; background:#1e293b; color:white; border-radius:8px; opacity:0.8;">${v}</button>`).join("") + `</div>`;
+    html += `<small>[인물]</small>` + make(suspects, 's') + `<small>[장소]</small>` + make(places, 'p') + `<small>[도구]</small>` + make(tools, 't');
+    html += `<div style="margin-top:15px;"><button onclick="viewClues(false, true)" style="width:100%; background:#475569;">📂 내 수첩 확인</button><button onclick="submitGuess()" style="width:100%; background:var(--success); color:#0f172a;">사건 종결 보고</button><button onclick="endTurn()" style="width:100%; background:transparent; border:1px solid rgba(255,255,255,0.3);">추리 포기</button></div>`;
     document.getElementById("popupContent").innerHTML = html;
     document.getElementById("popup").style.display = "flex";
 }
@@ -442,28 +343,11 @@ function selectGuess(t, v, b) {
 }
 
 function submitGuess() {
-    if(!currentGuess.s || !currentGuess.p || !currentGuess.t) return alert("모든 항목을 선택해야 합니다.");
-    const p = players[currentPlayer];
+    if(!currentGuess.s || !currentGuess.p || !currentGuess.t) return alert("모든 항목을 선택하세요.");
     if(currentGuess.s === answer.suspect && currentGuess.p === answer.place && currentGuess.t === answer.tool) {
         gameOver = true;
-        document.getElementById("popupContent").innerHTML = `
-            <div class="winner-box">
-                <h1 style="color:var(--warning); font-size: 40px; margin-bottom: 0;">🎊 CASE CLOSED 🎊</h1>
-                <p style="font-size: 20px; color: white; margin-top: 10px;">사건 해결! 수사 종료!</p>
-                <div style="background:${p.color}; width: 80px; height: 80px; border-radius: 50%; font-size: 40px; display: flex; align-items: center; justify-content: center; margin: 20px auto; border: 4px solid white; box-shadow: 0 0 20px ${p.color};">
-                    ${p.icon}
-                </div>
-                <h2 style="color:${p.color}; font-size: 28px; margin-top: 0;">${p.name} 수사관 승리</h2>
-                <hr style="opacity: 0.1; margin: 20px 0;">
-                <p style="font-size: 14px; opacity: 0.8;">최종 확인된 진실</p>
-                <p style="font-size: 18px; font-weight: bold; color: var(--accent);">
-                    ${answer.suspect} · ${answer.place} · ${answer.tool}
-                </p>
-                <button onclick="location.reload()" style="width:100%; background:var(--success); color:#0f172a; margin-top: 20px;">새로운 사건 수임하기</button>
-            </div>`;
-    } else { 
-        showEventPopup("<h2 style='color:var(--danger)'>❌ 오판</h2><p>추리가 틀렸습니다!</p>"); 
-    }
+        document.getElementById("popupContent").innerHTML = `<h1 style="color:var(--warning); font-size:32px;">🎊 CASE CLOSED 🎊</h1><p>${players[currentPlayer].name} 수사관 승리!</p><hr style="opacity:0.1;"><p>진실: ${answer.suspect} · ${answer.place} · ${answer.tool}</p><button onclick="location.reload()" style="width:100%; background:var(--success); margin-top:20px;">새 게임 시작</button>`;
+    } else { showEventPopup("<h2 style='color:var(--danger)'>❌ 오판</h2><p>추리가 틀렸습니다!</p>"); }
 }
 </script>
 </body>
